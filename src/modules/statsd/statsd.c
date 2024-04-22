@@ -40,6 +40,7 @@ static int func_time_start(struct sip_msg *msg, char *key);
 static int func_time_end(struct sip_msg *msg, char *key);
 static int func_incr(struct sip_msg *msg, char *key);
 static int func_decr(struct sip_msg *msg, char *key);
+static int convert_result(bool result);
 static char *get_milliseconds(char *dst);
 
 typedef struct StatsdParams
@@ -117,32 +118,32 @@ void mod_destroy(void)
 
 static int func_gauge(struct sip_msg *msg, char *key, char *val)
 {
-	return statsd_gauge(key, val);
+	return convert_result(statsd_gauge(key, val));
 }
 
 static int func_histogram(struct sip_msg *msg, char *key, char *val)
 {
-	return statsd_histogram(key, val);
+	return convert_result(statsd_histogram(key, val));
 }
 
 static int ki_statsd_gauge(sip_msg_t *msg, str *key, str *val)
 {
-	return statsd_gauge(key->s, val->s);
+	return convert_result(statsd_gauge(key->s, val->s));
 }
 
 static int ki_statsd_histogram(sip_msg_t *msg, str *key, str *val)
 {
-	return statsd_histogram(key->s, val->s);
+	return convert_result(statsd_histogram(key->s, val->s));
 }
 
 static int func_set(struct sip_msg *msg, char *key, char *val)
 {
-	return statsd_set(key, val);
+	return convert_result(statsd_set(key, val));
 }
 
 static int ki_statsd_set(sip_msg_t *msg, str *key, str *val)
 {
-	return statsd_set(key->s, val->s);
+	return convert_result(statsd_set(key->s, val->s));
 }
 
 static int func_time_start(struct sip_msg *msg, char *key)
@@ -214,22 +215,31 @@ static int ki_statsd_stop(sip_msg_t *msg, str *key)
 
 static int func_incr(struct sip_msg *msg, char *key)
 {
-	return statsd_count(key, "+1");
+	return convert_result(statsd_count(key, "+1"));
 }
 
 static int ki_statsd_incr(sip_msg_t *msg, str *key)
 {
-	return statsd_count(key->s, "+1");
+	return convert_result(statsd_count(key->s, "+1"));
 }
 
 static int func_decr(struct sip_msg *msg, char *key)
 {
-	return statsd_count(key, "-1");
+	return convert_result(statsd_count(key, "-1"));
 }
 
 static int ki_statsd_decr(sip_msg_t *msg, str *key)
 {
-	return statsd_count(key->s, "-1");
+	return convert_result(statsd_count(key->s, "-1"));
+}
+
+static int convert_result(bool result)
+{
+	if(result == false) {
+		return -1;
+	}
+
+	return 0;
 }
 
 char *get_milliseconds(char *dst)
